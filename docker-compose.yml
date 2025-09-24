@@ -21,11 +21,11 @@ services:
       - ./backend:/app:cached      # sincroniza código host ↔ contenedor
       - /app/node_modules    # evita sobrescribir node_modules del contenedor
     environment:
-      NODE_ENV: development
-      MONGO_URI: mongo://mongo:27017/avstickers
+      NODE_ENV: ${NODE_ENV}
+      MONGO_URI: ${MONGODB_URI}
       TEST_MP_ACCESS_TOKEN: ${TEST_MP_ACCESS_TOKEN}
       TEST_MP_PUBLIC_KEY: ${TEST_MP_PUBLIC_KEY}
-      PORT: 4000
+      PORT: ${PORT}
     depends_on:
       - mongo
     networks:

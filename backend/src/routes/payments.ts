@@ -1,9 +1,9 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { preferenceClient } from "../config/mercadopago";
 
-const router = Router();
+const router: any = Router();
 
-router.post("/create-preference", async (req, res) => {
+router.post("/create-preference", async (req: Request, res: Response) => {
   try {
     const { title, quantity, unit_price } = req.body;
 
