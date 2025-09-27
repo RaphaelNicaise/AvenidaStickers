@@ -85,11 +85,11 @@ El servidor estará disponible en `http://localhost:4000`
 - `GET /api/categories` - Obtener todas las categorías
 - `POST /api/categories` - Ctegories/:name` - Eliminar categoría
 
-### Pagos (MercadoPago) (a implementar)
+### Pagos (MercadoPago) (a)
 - `POST /payments/create-preference` - Crear preferencia de pago
 
 ### Utilidadrear nueva categoría
-- `DELETE /api/ca
+- `DELETE /api/categories/:name` - Eliminar categoría
 - `GET /` - Mensaje de bienvenida
 - `GET /health` - Health check
 - `GET /uploads/:filename` - Servir imágenes estáticas

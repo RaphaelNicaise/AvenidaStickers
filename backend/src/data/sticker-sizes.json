@@ -1,0 +1,24 @@
+{
+  "sizes": [
+    {
+      "id": "small",
+      "name": "Chico",
+      "dimensions": "4x4",
+      "price": 300
+    },
+    {
+      "id": "medium",
+      "name": "Mediano",
+      "dimensions": "6x6",
+      "price": 600
+    },
+    {
+      "id": "large",
+      "name": "Grande",
+      "dimensions": "8x8",
+      "price": 700
+    }
+  ],
+  "currency": "ARS",
+  "updatedAt": "2025-09-27T00:05:09.938Z"
+}

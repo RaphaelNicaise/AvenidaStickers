@@ -4,22 +4,29 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' --legacy-watch src/index.ts",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'npx ts-node' --legacy-watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "seed": "ts-node src/scripts/seedDatabase.ts"
+    "seed": "npx ts-node src/scripts/seedDatabase.ts",
+    "migrate": "npx ts-node src/scripts/migrateStickers.ts",
+    "migrate:swap": "npx ts-node src/scripts/migrateStickers.ts swap",
+    "clean": "npx ts-node src/scripts/cleanDatabase.ts",
+    "clean:uploads": "npx ts-node src/scripts/cleanUploads.ts",
+    "clean:all": "npx ts-node src/scripts/cleanDatabase.ts && npx ts-node src/scripts/cleanUploads.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.17.0",
   "dependencies": {
+    "axios": "^1.12.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "mercadopago": "^2.9.0",
     "mongoose": "^8.18.1",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.34.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

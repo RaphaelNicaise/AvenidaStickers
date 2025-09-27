@@ -1,0 +1,10 @@
+{
+	"dependencies": {
+		"bcryptjs": "^3.0.2",
+		"@types/bcryptjs": "^3.0.0",
+		"jsonwebtoken": "^9.0.2",
+		"@types/jsonwebtoken": "^9.0.10",
+		"express-rate-limit": "^8.1.0",
+		"helmet": "^8.1.0"
+	}
+}

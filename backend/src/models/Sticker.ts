@@ -16,8 +16,7 @@ function getValidCategories(): string[] {
 }
 
 export interface ISticker extends Document {
-  name: string;
-  description: string;
+  id_sticker: string; // Formato: 0001, 0002, 0003, etc.
   imagePath: string;
   categories: string[];
   createdAt: Date;
@@ -26,17 +25,17 @@ export interface ISticker extends Document {
 
 const StickerSchema: Schema = new Schema(
   {
-    name: {
+    id_sticker: {
       type: String,
-      required: [true, 'El nombre del sticker es requerido'],
-      trim: true,
-      maxlength: [100, 'El nombre no puede tener más de 100 caracteres']
-    },
-    description: {
-      type: String,
-      required: [true, 'La descripción del sticker es requerida'],
-      trim: true,
-      maxlength: [500, 'La descripción no puede tener más de 500 caracteres']
+      required: [true, 'El ID del sticker es requerido'],
+      unique: [true, 'Ya existe un sticker con este ID'],
+      validate: {
+        validator: function(value: string) {
+          // Permitir tanto IDs numéricos (0001, 0002) como IDs personalizados (P0001, P0002)
+          return /^\d{4}$/.test(value) || /^P\d{4}$/.test(value);
+        },
+        message: 'El ID del sticker debe ser un número de 4 dígitos (ej: 0001) o un ID personalizado (ej: P0001)'
+      }
     },
     imagePath: {
       type: String,
@@ -44,14 +43,15 @@ const StickerSchema: Schema = new Schema(
     },
     categories: {
       type: [String],
-      required: [true, 'Las categorías del sticker son requeridas'],
+      default: [],
       validate: {
         validator: function(categories: string[]) {
+          // Si no hay categorías, es válido
           if (!categories || categories.length === 0) {
-            return false;
+            return true;
           }
           
-          // Validar que todas las categorías existan en el archivo JSON
+          // Si hay categorías, validar que todas existan en el archivo JSON
           const validCategories = getValidCategories();
           return categories.every(cat => validCategories.includes(cat));
         },
@@ -65,7 +65,22 @@ const StickerSchema: Schema = new Schema(
 );
 
 // Índices para mejorar la búsqueda
-StickerSchema.index({ name: 1 });
+StickerSchema.index({ id_sticker: 1 });
 StickerSchema.index({ categories: 1 });
+
+// Método estático para generar el próximo ID de sticker
+StickerSchema.statics.generateNextId = async function() {
+  const lastSticker = await this.findOne({}, {}, { sort: { 'id_sticker': -1 } });
+  
+  if (!lastSticker) {
+    return '0001'; // Primer sticker
+  }
+  
+  const lastId = parseInt(lastSticker.id_sticker);
+  const nextId = lastId + 1;
+  
+  // Formato con ceros a la izquierda (4 dígitos)
+  return nextId.toString().padStart(4, '0');
+};
 
 export default mongoose.model<ISticker>('Sticker', StickerSchema);

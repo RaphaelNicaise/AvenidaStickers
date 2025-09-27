@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import Sticker from '../models/Sticker';
 
 const categoriesPath = path.join(__dirname, '../data/categories.json');
 
@@ -93,15 +94,21 @@ export class CategoryController {
         return;
       }
 
-      // Remover categoría
+      // Remover categoría del archivo JSON
       categories.splice(categoryIndex, 1);
 
-      // Guardar archivo
+      // Remover la categoría de todos los stickers que la tengan
+      await Sticker.updateMany(
+        { categories: category },
+        { $pull: { categories: category } }
+      );
+
+      // Guardar archivo actualizado
       fs.writeFileSync(categoriesPath, JSON.stringify({ categories }, null, 2));
 
       res.json({
         success: true,
-        message: 'Categoría eliminada exitosamente',
+        message: `Categoría eliminada exitosamente y removida de todos los stickers`,
         data: categories
       });
     } catch (error) {

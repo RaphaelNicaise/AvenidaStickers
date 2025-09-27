@@ -50,6 +50,18 @@ const sampleStickers = [
     description: 'Guitarra eléctrica clásica',
     imagePath: '/uploads/sample-guitar.jpg',
     categories: ['music']
+  },
+  {
+    name: 'Sticker Personalizado 1',
+    description: 'Sticker único sin categoría específica',
+    imagePath: '/uploads/sample-custom1.jpg',
+    categories: []
+  },
+  {
+    name: 'Sticker Especial',
+    description: 'Diseño especial exclusivo',
+    imagePath: '/uploads/sample-special.jpg',
+    categories: []
   }
 ];
 
