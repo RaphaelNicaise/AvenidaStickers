@@ -242,7 +242,7 @@ export const CartComponent: React.FC<CartProps> = ({
     });
 
     message += `\nTotal: ${cart.totalItems} stickers\n\n`;
-    message += `¡Gracias! 😊`;
+    message += `¡Gracias!`;
 
     return encodeURIComponent(message);
   };
