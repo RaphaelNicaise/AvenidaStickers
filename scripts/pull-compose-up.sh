@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 cd /var/www/avenidastickers
 git pull origin main
