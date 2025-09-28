@@ -268,7 +268,7 @@ export const CartComponent: React.FC<CartProps> = ({
 
       // Generar y abrir el mensaje de WhatsApp
       const message = generateWhatsAppMessage();
-      const whatsappUrl = `https://wa.me/5492914705786?text=${message}`;
+      const whatsappUrl = `https://wa.me/5492914705787?text=${message}`;
       window.open(whatsappUrl, '_blank');
       
     } catch (error) {
