@@ -3,7 +3,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { connectDB } from './config/database';
-import paymentsRoutes from "./routes/payments";
 import stickersRoutes from "./routes/stickers";
 import personalizedStickersRoutes from "./routes/personalizedStickers";
 import categoriesRoutes from "./routes/categories";
@@ -59,7 +58,6 @@ app.use('/api/stickers', stickersRoutes);
 app.use('/api/personalized-stickers', personalizedStickersRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/admin', adminRoutes);
-app.use("/payments", paymentsRoutes);
 
 // Instanciar el controlador admin para rutas públicas
 const adminController = new AdminController();
