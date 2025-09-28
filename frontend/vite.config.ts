@@ -8,6 +8,13 @@ export default defineConfig({
     host: true, // Permite conexiones externas (necesario para Docker)
     port: 5173,
     strictPort: true,
+    allowedHosts: [
+      'avenidastickers.me', 
+      'www.avenidastickers.me', 
+      '209.97.150.171', // IP del servidor
+      'localhost', 
+      '127.0.0.1'
+    ], // Hosts permitidos
     hmr: {
       clientPort: 5173, // Puerto para hot module replacement
     },
