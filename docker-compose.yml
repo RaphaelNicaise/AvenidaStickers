@@ -48,5 +48,22 @@ services:
     networks:
       - app_network
 
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./backend/public/uploads:/var/www/uploads:ro  # Imágenes uploads
+      - ./ssl:/etc/nginx/ssl:ro  # Certificados SSL (cuando los tengas)
+    depends_on:
+      - front
+      - back
+    networks:
+      - app_network
+      
 volumes:
   mongo_data:

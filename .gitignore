@@ -36,3 +36,8 @@ docker-compose.override.yml
 # Otros archivos temporales
 *.tmp
 *.swp
+
+ssl/
+*.pem
+*.key
+*.crt
