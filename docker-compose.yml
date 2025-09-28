@@ -23,8 +23,6 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}
       MONGO_URI: ${MONGODB_URI}
-      TEST_MP_ACCESS_TOKEN: ${TEST_MP_ACCESS_TOKEN}
-      TEST_MP_PUBLIC_KEY: ${TEST_MP_PUBLIC_KEY}
       PORT: ${PORT}
       ADMIN_KEY: ${ADMIN_KEY}
     depends_on:
