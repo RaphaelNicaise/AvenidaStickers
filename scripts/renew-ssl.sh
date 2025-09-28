@@ -21,4 +21,4 @@ chmod 600 /var/www/avenidastickers/ssl/privkey.pem
 cd /var/www/avenidastickers
 docker-compose up -d
 
-echo "$(date): Renovación SSL completada"
+echo "$(date): Renovacion ssl completada"
