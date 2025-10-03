@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Sticker from '../models/Sticker';
+import PersonalizedSticker from '../models/PersonalizedSticker';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -148,6 +149,86 @@ export class AdminController {
       res.status(500).json({
         success: false,
         message: 'Error al actualizar configuración de tamaños',
+        error: (error as Error).message
+      });
+    }
+  }
+
+  // Reiniciar catálogo completo (configuración avanzada)
+  public async resetCatalog(req: Request, res: Response): Promise<void> {
+    try {
+      const { adminPassword } = req.body;
+      const envAdminKey = process.env.ADMIN_KEY;
+
+      // Validar contraseña de administrador
+      if (!envAdminKey || adminPassword !== envAdminKey) {
+        res.status(401).json({
+          success: false,
+          message: 'Contraseña de administrador incorrecta'
+        });
+        return;
+      }
+
+      console.log('🔄 Iniciando reinicio completo del catálogo...');
+
+      // 1. Eliminar todos los stickers de la base de datos
+      const deletedStickers = await Sticker.deleteMany({});
+      console.log(`✅ Eliminados ${deletedStickers.deletedCount} stickers de la base de datos`);
+
+      // 2. Eliminar todos los stickers personalizados
+      const deletedPersonalized = await PersonalizedSticker.deleteMany({});
+      console.log(`✅ Eliminados ${deletedPersonalized.deletedCount} stickers personalizados`);
+
+      // 3. Limpiar directorio de uploads
+      const uploadsPath = path.join(__dirname, '../../public/uploads');
+      if (fs.existsSync(uploadsPath)) {
+        const files = fs.readdirSync(uploadsPath);
+        let deletedFiles = 0;
+        
+        files.forEach(file => {
+          const filePath = path.join(uploadsPath, file);
+          if (fs.statSync(filePath).isFile()) {
+            fs.unlinkSync(filePath);
+            deletedFiles++;
+          }
+        });
+        console.log(`✅ Eliminados ${deletedFiles} archivos de uploads`);
+      }
+
+      // 4. Restaurar categorías a las predeterminadas
+      const defaultCategories = {
+        categories: [
+          'argentina',
+          'art',
+          'breaking bad',
+          'gaming',
+          'música',
+          'personalizados'
+        ]
+      };
+      fs.writeFileSync(categoriesPath, JSON.stringify(defaultCategories, null, 2));
+      console.log('✅ Categorías restauradas a valores predeterminados');
+
+      // 5. Mantener configuración actual de tamaños y precios (NO restaurar)
+      console.log('ℹ️ Configuración de tamaños y precios mantenida sin cambios');
+
+      console.log('🎉 Reinicio del catálogo completado exitosamente');
+
+      res.json({
+        success: true,
+        message: 'Catálogo reiniciado exitosamente. Todos los datos han sido eliminados y las categorías restauradas a valores predeterminados. La configuración de precios se mantuvo sin cambios.',
+        data: {
+          deletedStickers: deletedStickers.deletedCount,
+          deletedPersonalized: deletedPersonalized.deletedCount,
+          resetCategories: defaultCategories.categories.length,
+          pricesPreserved: true
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error durante el reinicio del catálogo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al reiniciar el catálogo',
         error: (error as Error).message
       });
     }

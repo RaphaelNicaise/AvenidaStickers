@@ -16,6 +16,8 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
   });
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -23,7 +25,7 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
   const [loadingCategories, setLoadingCategories] = useState(true);
   
   // Estados para Pinterest
-  const [importMode, setImportMode] = useState<'file' | 'pinterest'>('pinterest');
+  const [importMode, setImportMode] = useState<'file' | 'pinterest'>('file'); // Cambiar default a 'file'
   const [pinterestUrl, setPinterestUrl] = useState('');
   const [processingPinterest, setProcessingPinterest] = useState(false);
 
@@ -33,6 +35,88 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
   const isValidPinterestUrl = (url: string): boolean => {
     const pinterestRegex = /^https?:\/\/(www\.)?(pinterest\.com|ar\.pinterest\.com|pinterest\.ar)\/pin\/\d+/;
     return pinterestRegex.test(url);
+  };
+
+  // Función para obtener sugerencias de categorías basadas en texto
+  const getCategorySuggestions = (input: string): string[] => {
+    if (!input.trim()) return [];
+    
+    const inputLower = input.toLowerCase().trim();
+    
+    // Filtrar categorías que contengan el texto ingresado
+    const matches = availableCategories.filter(category => 
+      category.toLowerCase().includes(inputLower) && 
+      !formData.categories.includes(category)
+    );
+    
+    // Ordenar por relevancia: primero las que empiezan con el texto, luego las que lo contienen
+    const sortedMatches = matches.sort((a, b) => {
+      const aStartsWith = a.toLowerCase().startsWith(inputLower);
+      const bStartsWith = b.toLowerCase().startsWith(inputLower);
+      
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+      
+      // Si ambas empiezan igual o ambas contienen, ordenar alfabéticamente
+      return a.localeCompare(b);
+    });
+    
+    // Retornar máximo 3 sugerencias
+    return sortedMatches.slice(0, 3);
+  };
+
+  // Función para manejar navegación por teclado en sugerencias
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const suggestions = getCategorySuggestions(newCategory);
+    
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAddCategoryToSticker();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+        break;
+      
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < suggestions.length) {
+          // Seleccionar la sugerencia highlightada
+          const selectedSuggestion = suggestions[selectedSuggestionIndex];
+          if (!formData.categories.includes(selectedSuggestion)) {
+            setFormData(prev => ({
+              ...prev,
+              categories: [...prev.categories, selectedSuggestion]
+            }));
+            setNewCategory('');
+            setShowSuggestions(false);
+            setSelectedSuggestionIndex(-1);
+          }
+        } else {
+          // No hay sugerencia seleccionada, agregar como nueva categoría
+          handleAddCategoryToSticker();
+        }
+        break;
+      
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
+    }
   };
 
   // Handler para envío de Pinterest
@@ -315,9 +399,9 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
                   </button>
                 </div>
               </div>
-            )}          <form onSubmit={importMode === 'pinterest' ? handlePinterestSubmit : handleSubmit} className="space-y-6">
+            )}          <form onSubmit={(!sticker && importMode === 'pinterest') ? handlePinterestSubmit : handleSubmit} className="space-y-6">
             {/* Contenido condicional según el modo */}
-            {importMode === 'pinterest' ? (
+            {(!sticker && importMode === 'pinterest') ? (
               /* Modo Pinterest */
               <div className="space-y-4">
                 <div>
@@ -375,7 +459,7 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
                 </label>
                 
                 {imagePreview && (
-                  <div className="mb-4">
+                  <div className="mb-4 flex justify-center">
                     <img
                       src={imagePreview}
                       alt="Preview"
@@ -408,18 +492,11 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
                       />
                       <label 
                         htmlFor="admin-images"
-                        className="flex items-center justify-center gap-3 w-full p-4 border-2 border-dashed border-primary-300 rounded-lg 
+                        className="flex items-center justify-center gap-3 w-full p-4 border-2 border-primary-300 rounded-lg 
                                  text-center cursor-pointer bg-primary-50 text-primary-600 font-medium 
                                  hover:bg-primary-100 hover:border-primary-400 transition-all duration-200"
                       >
                         <span>📁 Subir Archivos</span>
-                        {/* Ícono de información */}
-                        <span 
-                          title="Admin: Sin límite de archivos"
-                          className="inline-flex items-center justify-center w-5 h-5 bg-primary-600 text-white text-xs font-bold rounded-full cursor-help"
-                        >
-                          ∞
-                        </span>
                       </label>
                       <p className="text-sm text-gray-600 mt-2 text-center">
                         Modo Admin: Sin límite de archivos. Selecciona las imágenes que necesites.
@@ -450,13 +527,8 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
                     )}
                   </div>
                 ) : (
-                  /* Para editar stickers existentes, usar input tradicional */
-                  <input
-                    type="file"
-                    onChange={handleImageChange}
-                    accept="image/*"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-                  />
+                  /* Para editar stickers existentes, solo mostrar la imagen sin input */
+                  null
                 )}
                 
                 {!sticker && (
@@ -474,21 +546,61 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
               </label>
               
               {/* Input para agregar categorías */}
-              <div className="mb-4">
+              <div className="mb-4 relative">
                 <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    placeholder="Escribe el nombre de una categoría..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddCategoryToSticker();
-                      }
-                    }}
-                  />
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={(e) => {
+                        setNewCategory(e.target.value);
+                        setShowSuggestions(e.target.value.length > 0);
+                        setSelectedSuggestionIndex(-1); // Resetear selección al cambiar texto
+                      }}
+                      onFocus={() => setShowSuggestions(newCategory.length > 0)}
+                      onBlur={() => {
+                        // Delay para permitir clic en sugerencias
+                        setTimeout(() => setShowSuggestions(false), 150);
+                      }}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Escribe el nombre de una categoría..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                    
+                    {/* Sugerencias dropdown - solo mostrar si hay sugerencias */}
+                    {showSuggestions && newCategory.length > 0 && getCategorySuggestions(newCategory).length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                        {getCategorySuggestions(newCategory).map((suggestion, index) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => {
+                              setNewCategory(suggestion);
+                              setShowSuggestions(false);
+                              // Auto-agregar la categoría sugerida
+                              setTimeout(() => {
+                                if (!formData.categories.includes(suggestion)) {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    categories: [...prev.categories, suggestion]
+                                  }));
+                                  setNewCategory('');
+                                }
+                              }, 100);
+                            }}
+                            className={`w-full text-left px-3 py-2 hover:bg-primary-50 hover:text-primary-700 focus:bg-primary-50 focus:text-primary-700 focus:outline-none border-b border-gray-100 last:border-b-0 ${
+                              index === selectedSuggestionIndex ? 'bg-primary-100 text-primary-800' : ''
+                            }`}
+                          >
+                            <span className="font-medium">{suggestion}</span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              {suggestion.toLowerCase().startsWith(newCategory.toLowerCase()) ? 'Empieza con' : 'Contiene'} "{newCategory}"
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={handleAddCategoryToSticker}
@@ -498,7 +610,7 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Escribe el nombre y presiona Enter o haz clic en Agregar
+                  Escribe para ver sugerencias, presiona Enter o haz clic en Agregar
                 </p>
               </div>
 
@@ -576,10 +688,10 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {importMode === 'pinterest' && processingPinterest ? 'Importando desde Pinterest...' : 'Guardando...'}
+                    {(!sticker && importMode === 'pinterest' && processingPinterest) ? 'Importando desde Pinterest...' : 'Guardando...'}
                   </div>
                 ) : (
-                  importMode === 'pinterest' ? 'Crear Sticker' : (sticker ? 'Actualizar Sticker' : 'Crear Sticker')
+                  (!sticker && importMode === 'pinterest') ? 'Crear Sticker' : (sticker ? 'Actualizar Sticker' : 'Crear Sticker')
                 )}
               </button>
               <button

@@ -178,6 +178,14 @@ class AdminApiService {
     const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
     return `${this.baseURL}/${cleanPath}`;
   }
+
+  // Reiniciar catálogo completo (configuración avanzada)
+  async resetCatalog(adminPassword: string): Promise<{ success: boolean; message: string }> {
+    return this.request('/api/admin/reset-catalog', {
+      method: 'POST',
+      body: JSON.stringify({ adminPassword })
+    });
+  }
 }
 
 export const adminApiService = new AdminApiService();

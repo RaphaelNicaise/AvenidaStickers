@@ -18,4 +18,7 @@ router.get('/dashboard', adminController.getDashboardStats);
 router.get('/sizes', adminController.getSizes);
 router.put('/sizes', adminController.updateSizes);
 
+// Configuración avanzada
+router.post('/reset-catalog', adminController.resetCatalog);
+
 export default router;

@@ -18,6 +18,10 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Estados para las sugerencias de categorías
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
   // Cargar categorías disponibles
   useEffect(() => {
@@ -31,6 +35,74 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
     };
     loadCategories();
   }, []);
+
+  // Función para obtener sugerencias de categorías
+  const getCategorySuggestions = (input: string) => {
+    if (!input.trim()) return [];
+    
+    const inputLower = input.toLowerCase();
+    return availableCategories.filter(category => 
+      category.toLowerCase().includes(inputLower) && 
+      !formData.categories.includes(category)
+    ).slice(0, 5);
+  };
+
+  // Manejar navegación por teclado en sugerencias
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const suggestions = getCategorySuggestions(newCategoryName);
+    
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAddNewCategory();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0) {
+          selectSuggestion(suggestions[selectedSuggestionIndex]);
+        } else {
+          handleAddNewCategory();
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
+    }
+  };
+
+  // Seleccionar una sugerencia
+  const selectSuggestion = (suggestion: string) => {
+    setNewCategoryName(suggestion);
+    setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
+    // Auto-agregar la categoría sugerida
+    setTimeout(() => {
+      if (!formData.categories.includes(suggestion)) {
+        setFormData(prev => ({
+          ...prev,
+          categories: [...prev.categories, suggestion]
+        }));
+        setNewCategoryName('');
+      }
+    }, 100);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -182,16 +254,37 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Agregar Nuevo Sticker</h1>
       
-      <button onClick={onBackToCatalog} style={{ 
-        marginBottom: '20px',
-        padding: '8px 16px',
-        backgroundColor: '#6c757d',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer'
-      }}>
-        ← Volver al Catálogo
+      <button 
+        onClick={onBackToCatalog} 
+        style={{ 
+          marginBottom: '20px',
+          padding: '10px 20px',
+          backgroundColor: '#6c757d',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontSize: '14px',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          transition: 'all 0.3s ease',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+          e.currentTarget.style.backgroundColor = '#5a6268';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0) scale(1)';
+          e.currentTarget.style.backgroundColor = '#6c757d';
+          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        }}
+      >
+        <span>←</span>
+        <span>Volver al Catálogo</span>
       </button>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -259,30 +352,80 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
             padding: '15px', 
             border: '2px dashed #007bff',
             borderRadius: '6px',
-            backgroundColor: '#f8f9fa'
+            backgroundColor: '#f8f9fa',
+            position: 'relative'
           }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#007bff' }}>
               Crear nueva categoría:
             </label>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <input
-                type="text"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Nombre de la categoría"
-                style={{ 
-                  flex: 1,
-                  padding: '8px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddNewCategory();
-                  }
-                }}
-              />
+              <div style={{ flex: 1, position: 'relative' }}>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => {
+                    setNewCategoryName(e.target.value);
+                    setShowSuggestions(e.target.value.length > 0);
+                    setSelectedSuggestionIndex(-1);
+                  }}
+                  onFocus={() => setShowSuggestions(newCategoryName.length > 0)}
+                  onBlur={() => {
+                    // Delay para permitir clic en sugerencias
+                    setTimeout(() => setShowSuggestions(false), 150);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Nombre de la categoría"
+                  style={{ 
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px'
+                  }}
+                />
+                
+                {/* Sugerencias dropdown - solo mostrar si hay sugerencias */}
+                {showSuggestions && newCategoryName.length > 0 && getCategorySuggestions(newCategoryName).length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 10,
+                    backgroundColor: 'white',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    marginTop: '2px'
+                  }}>
+                    {getCategorySuggestions(newCategoryName).map((suggestion, index) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => selectSuggestion(suggestion)}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '8px 12px',
+                          border: 'none',
+                          backgroundColor: index === selectedSuggestionIndex ? '#e3f2fd' : 'white',
+                          color: index === selectedSuggestionIndex ? '#1976d2' : '#333',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #eee',
+                          fontSize: '14px'
+                        }}
+                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                      >
+                        <span style={{ fontWeight: 'bold' }}>{suggestion}</span>
+                        <span style={{ fontSize: '12px', color: '#666', marginLeft: '8px' }}>
+                          {suggestion.toLowerCase().startsWith(newCategoryName.toLowerCase()) ? 'Empieza con' : 'Contiene'} "{newCategoryName}"
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={handleAddNewCategory}
@@ -362,7 +505,7 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
                 gap: '10px',
                 width: '100%', 
                 padding: '16px',
-                border: '2px dashed #007bff',
+                border: '2px solid #007bff',
                 borderRadius: '8px',
                 textAlign: 'center',
                 cursor: 'pointer',
@@ -382,25 +525,6 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
               }}
             >
               📁 Subir Archivos
-              {/* Ícono de información */}
-              <span 
-                title="Puedes seleccionar desde 1 hasta 20 archivos de imagen"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  borderRadius: '50%',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  cursor: 'help'
-                }}
-              >
-                ℹ
-              </span>
             </label>
             <p style={{ 
               fontSize: '12px', 

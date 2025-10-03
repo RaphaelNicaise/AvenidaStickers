@@ -5,6 +5,7 @@ import StickerManagement from './StickerManagement';
 import SizesManagement from './SizesManagement';
 import CategoryManagement from './CategoryManagement';
 import AdminPersonalizedStickers from './AdminPersonalizedStickers';
+import AdvancedSettings from './AdvancedSettings';
 import { adminApiService } from '../../services/adminApi';
 
 const Dashboard: React.FC<{ onSectionChange: (section: string) => void }> = ({ onSectionChange }) => {
@@ -170,6 +171,8 @@ const AdminPanel: React.FC = () => {
         return <CategoryManagement />;
       case 'sizes':
         return <SizesManagement />;
+      case 'advanced':
+        return <AdvancedSettings />;
       default:
         return <Dashboard onSectionChange={setCurrentSection} />;
     }

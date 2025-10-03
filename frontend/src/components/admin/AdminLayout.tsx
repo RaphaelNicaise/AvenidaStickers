@@ -19,6 +19,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'personalized', label: 'Stickers Personalizados', icon: '🎨' },
     { id: 'categories', label: 'Gestión de Categorías', icon: '📂' },
     { id: 'sizes', label: 'Tamaños y Precios', icon: '📏' },
+    { id: 'advanced', label: 'Configuración Avanzada', icon: '⚙️' },
   ];
 
   return (

@@ -68,17 +68,19 @@ export const Home: React.FC<HomeProps> = ({ onViewCatalog }) => {
       <div className="absolute top-0 left-0 right-0 z-20">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 sm:py-4 space-y-2 sm:space-y-0">
-            <div className="flex items-center justify-center sm:justify-start space-x-2 sm:space-x-3">
+            <div className="flex items-center justify-center sm:justify-start space-x-2 sm:space-x-3 cursor-pointer group" onClick={() => window.location.reload()}>
               <img 
                 src="/logo.png" 
                 alt="Avenida Stickers" 
-                className="h-7 sm:h-10 w-7 sm:w-10 object-contain"
+                className="h-7 sm:h-10 w-7 sm:w-10 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
               />
-              <span className="font-bold text-primary-700 text-sm sm:text-lg">Avenida Stickers</span>
+              <span className="font-bold text-primary-700 text-sm sm:text-lg transition-all duration-300 group-hover:text-primary-800 group-hover:scale-105">Avenida Stickers</span>
             </div>
             <button
               onClick={onViewCatalog}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white font-medium rounded-lg transition-all duration-200 text-sm sm:text-base touch-manipulation"
+              className="group w-full sm:w-auto px-3 sm:px-4 py-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white font-medium rounded-lg 
+                       transition-all duration-300 text-sm sm:text-base touch-manipulation
+                       hover:scale-105 active:scale-95 transform hover:shadow-lg hover:-translate-y-0.5"
             >
               Ver Catálogo
             </button>
@@ -102,7 +104,7 @@ export const Home: React.FC<HomeProps> = ({ onViewCatalog }) => {
               className="sm:ml-6 p-2.5 sm:p-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-110 group touch-manipulation"
             >
               <svg 
-                className="w-5 h-5 sm:w-8 sm:h-8 text-white group-hover:scale-110 transition-transform duration-200" 
+                className="w-6 h-6 sm:w-10 sm:h-10 text-white group-hover:scale-110 transition-transform duration-200" 
                 fill="currentColor" 
                 viewBox="0 0 24 24"
               >
@@ -126,13 +128,14 @@ export const Home: React.FC<HomeProps> = ({ onViewCatalog }) => {
           <div className="mb-8 sm:mb-16 px-3 sm:px-0">
             <button
               onClick={onViewCatalog}
-              className="inline-flex items-center px-5 sm:px-8 lg:px-12 py-3 sm:py-4 bg-gradient-to-r from-primary-500 to-primary-600 
+              className="group inline-flex items-center px-5 sm:px-8 lg:px-12 py-3 sm:py-4 bg-gradient-to-r from-primary-500 to-primary-600 
                        text-white font-modern font-semibold text-sm sm:text-lg lg:text-xl rounded-full shadow-lg hover:shadow-2xl 
-                       transform hover:scale-105 active:scale-95 transition-all duration-300 group touch-manipulation w-full sm:w-auto justify-center"
+                       transform hover:scale-105 active:scale-95 transition-all duration-300 touch-manipulation w-full sm:w-auto justify-center
+                       hover:-translate-y-1 hover:from-primary-600 hover:to-primary-700"
             >
               <span>Ver Catálogo de Stickers</span>
               <svg 
-                className="ml-1.5 sm:ml-3 w-4 h-4 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform duration-200" 
+                className="ml-1.5 sm:ml-3 w-4 h-4 sm:w-6 sm:h-6 group-hover:translate-x-2 group-hover:scale-110 transition-all duration-300" 
                 fill="none" 
                 viewBox="0 0 24 24" 
                 stroke="currentColor"
@@ -232,7 +235,7 @@ export const Home: React.FC<HomeProps> = ({ onViewCatalog }) => {
                 rel="noopener noreferrer"
                 className="text-primary-500 hover:text-primary-700 active:text-primary-800 transition-colors duration-200 flex items-center space-x-1 touch-manipulation"
               >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                 </svg>
                 <span className="text-xs sm:text-sm">@av.stickerss</span>
@@ -248,7 +251,7 @@ export const Home: React.FC<HomeProps> = ({ onViewCatalog }) => {
                   rel="noopener noreferrer"
                   className="text-primary-500 hover:text-primary-700 active:text-primary-800 transition-colors duration-200 flex items-center space-x-1 touch-manipulation"
                 >
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.80 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.40-1.439-1.40z"/>
                   </svg>
                   <span className="text-xs">@raphanicaise</span>
