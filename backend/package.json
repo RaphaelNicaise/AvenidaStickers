@@ -12,7 +12,8 @@
     "migrate:swap": "npx ts-node src/scripts/migrateStickers.ts swap",
     "clean": "npx ts-node src/scripts/cleanDatabase.ts",
     "clean:uploads": "npx ts-node src/scripts/cleanUploads.ts",
-    "clean:all": "npx ts-node src/scripts/cleanDatabase.ts && npx ts-node src/scripts/cleanUploads.ts"
+    "clean:all": "npx ts-node src/scripts/cleanDatabase.ts && npx ts-node src/scripts/cleanUploads.ts",
+    "init:config": "npx ts-node src/scripts/initConfig.ts"
   },
   "keywords": [],
   "author": "",

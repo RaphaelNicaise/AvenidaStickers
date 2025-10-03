@@ -43,3 +43,8 @@ ssl/
 *.crt
 
 backend/public/uploads/*
+
+# Archivos de configuración que pueden variar por entorno
+backend/src/data/categories.json
+backend/src/data/sticker-sizes.json
+backend/src/data/sticker-sizes.json

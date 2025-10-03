@@ -83,7 +83,8 @@ El servidor estará disponible en `http://localhost:4000`
 
 ### Categorías
 - `GET /api/categories` - Obtener todas las categorías
-- `POST /api/categories` - Ctegories/:name` - Eliminar categoría
+- `POST /api/categories` - Crear nueva categoría
+- `DELETE /api/categories/:name` - Eliminar categoría
 
 ### Pagos (MercadoPago) (a)
 - `POST /payments/create-preference` - Crear preferencia de pago
@@ -135,9 +136,13 @@ Las categorías se manejan dinámicamente desde un archivo JSON. Algunas categor
 ## 🔧 Scripts Disponibles
 
 - `pnpm run dev` - Iniciar en modo desarrollo
-- `pnpm run buildi` - Compilar TypeScript
+- `pnpm run build` - Compilar TypeScript
 - `pnpm run start` - Iniciar servidor compilado
 - `pnpm run seed` - Poblar base de datos con datos de ejemplo
+- `pnpm run init:config` - Inicializar archivos de configuración desde templates
+- `pnpm run clean` - Limpiar base de datos
+- `pnpm run clean:uploads` - Limpiar archivos subidos
+- `pnpm run migrate` - Migrar datos de stickers
 
 ## 📁 Manejo de Archivos
 

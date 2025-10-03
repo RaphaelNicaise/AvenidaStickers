@@ -10,6 +10,7 @@ import adminRoutes from "./routes/admin";
 import { AdminController } from './controllers/adminController';
 import Config from './models/Config';
 import { scheduleCleanup } from './utils/cleanup';
+import { initializeConfig } from './scripts/initConfig';
 
 // Configurar variables de entorno
 dotenv.config();
@@ -20,6 +21,9 @@ const PORT = process.env.PORT || 4000;
 // Conectar a la base de datos e inicializar configuraciones
 const initializeApp = async () => {
   try {
+    // Inicializar archivos de configuración desde templates
+    initializeConfig();
+    
     await connectDB();
     
     // Inicializar configuraciones por defecto

@@ -38,12 +38,15 @@ const AdminPersonalizedStickers: React.FC = () => {
   const handlePublish = async (stickerId: string) => {
     try {
       const response = await personalizedStickerApiService.publishPersonalizedSticker(stickerId, ['personalizados']);
+      
       if (response.success) {
         showSuccess('Sticker publicado exitosamente');
         loadStickers(); // Recargar lista
+      } else {
+        showError(`Error: ${response.message || 'Error desconocido'}`);
       }
     } catch (error: any) {
-      showError('Error al publicar sticker');
+      showError(`Error al publicar sticker: ${error.message}`);
       console.error('Error publishing sticker:', error);
     }
   };

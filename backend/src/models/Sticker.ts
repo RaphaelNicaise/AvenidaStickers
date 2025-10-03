@@ -6,12 +6,27 @@ import * as path from 'path';
 function getValidCategories(): string[] {
   try {
     const categoriesPath = path.join(__dirname, '../data/categories.json');
+    
+    // Si el archivo no existe, crearlo desde el template
+    if (!fs.existsSync(categoriesPath)) {
+      const templatePath = path.join(__dirname, '../data/categories.template.json');
+      if (fs.existsSync(templatePath)) {
+        console.log('📋 Inicializando categories.json desde template...');
+        fs.copyFileSync(templatePath, categoriesPath);
+        console.log('✅ categories.json creado exitosamente');
+      } else {
+        console.warn('⚠️ Template categories.template.json no encontrado, creando archivo básico');
+        const defaultCategories = { categories: ['personalizados'] };
+        fs.writeFileSync(categoriesPath, JSON.stringify(defaultCategories, null, 2));
+      }
+    }
+    
     const categoriesData = fs.readFileSync(categoriesPath, 'utf8');
     const { categories } = JSON.parse(categoriesData);
     return categories;
   } catch (error) {
-    console.warn('Error al leer categories.json, usando categorías por defecto');
-    return ['anime', 'gaming', 'memes', 'nature', 'art', 'otros'];
+    console.warn('❌ Error al leer categories.json, usando categorías por defecto:', error);
+    return ['personalizados'];
   }
 }
 
