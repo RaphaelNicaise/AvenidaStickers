@@ -11,6 +11,7 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
     categories: [] as string[]
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -74,9 +75,18 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+  const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const filesArray = Array.from(e.target.files);
+      
+      // Límite de 20 archivos en formulario público
+      if (filesArray.length > 20) {
+        setError('Máximo 20 archivos permitidos por vez');
+        return;
+      }
+      
+      setSelectedFiles(filesArray);
+      setSelectedFile(null); // Limpiar selección individual si se usa selección múltiple
     }
   };
 
@@ -91,39 +101,76 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
       if (!formData.name.trim()) {
         throw new Error('El nombre es requerido');
       }
-      if (!selectedFile) {
+      if (!selectedFile && selectedFiles.length === 0) {
         throw new Error('La imagen es requerida');
       }
 
-      // Crear FormData para envío
-      const submitData = new FormData();
-      submitData.append('name', formData.name.trim());
-      // Convertir las categorías seleccionadas a string separado por comas
-      submitData.append('categories', formData.categories.join(', '));
-      submitData.append('image', selectedFile);
+      // Si hay múltiples archivos, procesar cada uno
+      if (selectedFiles.length > 0) {
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          try {
+            const submitData = new FormData();
+            submitData.append('name', `${formData.name.trim()} ${i + 1}`);
+            submitData.append('categories', formData.categories.join(', '));
+            submitData.append('image', file);
 
-      // Enviar al backend
-      const response = await fetch('http://localhost:4000/api/stickers', {
-        method: 'POST',
-        body: submitData
-      });
+            const response = await fetch('http://localhost:4000/api/stickers', {
+              method: 'POST',
+              body: submitData
+            });
 
-      const result = await response.json();
-
-      if (result.success) {
-        setMessage('¡Sticker agregado exitosamente!');
-        // Limpiar formulario
-        setFormData({
-          name: '',
-          categories: []
-        });
-        setSelectedFile(null);
-        // Resetear input file
-        const fileInput = document.getElementById('image') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
+            const result = await response.json();
+            if (result.success) {
+              successCount++;
+            } else {
+              errorCount++;
+            }
+          } catch (err) {
+            errorCount++;
+          }
+        }
+        
+        if (successCount > 0) {
+          setMessage(`¡${successCount} sticker${successCount > 1 ? 's' : ''} agregado${successCount > 1 ? 's' : ''} exitosamente!${errorCount > 0 ? ` (${errorCount} fallaron)` : ''}`);
+        }
+        if (errorCount === selectedFiles.length) {
+          throw new Error('Error al agregar los stickers');
+        }
       } else {
-        throw new Error(result.message || 'Error al agregar el sticker');
+        // Procesar archivo individual
+        const submitData = new FormData();
+        submitData.append('name', formData.name.trim());
+        submitData.append('categories', formData.categories.join(', '));
+        submitData.append('image', selectedFile!);
+
+        const response = await fetch('http://localhost:4000/api/stickers', {
+          method: 'POST',
+          body: submitData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setMessage('¡Sticker agregado exitosamente!');
+        } else {
+          throw new Error(result.message || 'Error al agregar el sticker');
+        }
       }
+
+      // Limpiar formulario
+      setFormData({
+        name: '',
+        categories: []
+      });
+      setSelectedFile(null);
+      setSelectedFiles([]);
+      // Resetear input file
+      const fileInput = document.getElementById('images') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -176,7 +223,7 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
           
           {/* Lista de categorías existentes */}
           <div style={{ 
-            maxHeight: '200px', 
+            maxHeight: '250px', 
             overflowY: 'auto',
             border: '1px solid #ddd',
             borderRadius: '4px',
@@ -285,19 +332,87 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
           <label htmlFor="image" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
             Imagen:
           </label>
-          <input
-            type="file"
-            id="image"
-            accept="image/*"
-            onChange={handleFileChange}
-            style={{ 
-              width: '100%', 
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '4px'
-            }}
-            required
-          />
+          
+          {/* Contenedor de botón de carga */}
+          <div style={{ marginBottom: '15px' }}>
+            <input
+              type="file"
+              id="images"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  if (files.length === 1) {
+                    setSelectedFile(files[0]);
+                    setSelectedFiles([]);
+                  } else {
+                    handleMultipleFilesChange(e);
+                  }
+                }
+              }}
+              style={{ display: 'none' }}
+            />
+            <label 
+              htmlFor="images"
+              style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                width: '100%', 
+                padding: '16px',
+                border: '2px dashed #007bff',
+                borderRadius: '8px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                backgroundColor: '#f8f9fa',
+                color: '#007bff',
+                fontWeight: 'bold',
+                fontSize: '16px',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#e7f3ff';
+                e.currentTarget.style.borderColor = '#0056b3';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.borderColor = '#007bff';
+              }}
+            >
+              📁 Subir Archivos
+              {/* Ícono de información */}
+              <span 
+                title="Puedes seleccionar desde 1 hasta 20 archivos de imagen"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  borderRadius: '50%',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  cursor: 'help'
+                }}
+              >
+                ℹ
+              </span>
+            </label>
+            <p style={{ 
+              fontSize: '12px', 
+              color: '#666', 
+              marginTop: '8px',
+              textAlign: 'center'
+            }}>
+              Selecciona desde 1 hasta 20 archivos de imagen (JPG, PNG, WebP)
+            </p>
+          </div>
+
+          {/* Preview de archivo individual */}
           {selectedFile && (
             <div style={{ marginTop: '15px', textAlign: 'center' }}>
               <p style={{ marginBottom: '10px', fontWeight: 'bold' }}>
@@ -314,6 +429,50 @@ export const AddStickerForm: React.FC<AddStickerFormProps> = ({ onBackToCatalog 
                   borderRadius: '4px'
                 }}
               />
+            </div>
+          )}
+
+          {/* Preview de múltiples archivos */}
+          {selectedFiles.length > 0 && (
+            <div style={{ marginTop: '15px' }}>
+              <p style={{ marginBottom: '10px', fontWeight: 'bold' }}>
+                {selectedFiles.length} archivos seleccionados:
+              </p>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', 
+                gap: '10px',
+                maxHeight: '400px',
+                overflowY: 'auto',
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                backgroundColor: '#f9f9f9'
+              }}>
+                {selectedFiles.map((file, index) => (
+                  <div key={index} style={{ textAlign: 'center' }}>
+                    <img 
+                      src={URL.createObjectURL(file)} 
+                      alt={`Preview ${index + 1}`} 
+                      style={{ 
+                        width: '100%', 
+                        height: '120px', 
+                        objectFit: 'cover',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        marginBottom: '5px'
+                      }}
+                    />
+                    <p style={{ 
+                      fontSize: '12px', 
+                      color: '#666',
+                      wordBreak: 'break-word'
+                    }}>
+                      {file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

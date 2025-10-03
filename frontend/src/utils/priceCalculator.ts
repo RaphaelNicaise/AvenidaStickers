@@ -7,14 +7,11 @@ import type { StickerSize } from '../types';
  * @returns Precio final con incremento aplicado si corresponde
  */
 export const calculateStickerPrice = (basePrice: number, isPersonalized: boolean = false): number => {
-  console.log(`💰 Calculating price: basePrice=${basePrice}, isPersonalized=${isPersonalized}`);
   if (isPersonalized) {
     // Agregar 20% al precio base para stickers personalizados
     const finalPrice = Math.round(basePrice * 1.2);
-    console.log(`💰 Final price with 20% markup: ${finalPrice}`);
     return finalPrice;
   }
-  console.log(`💰 Final price (no markup): ${basePrice}`);
   return basePrice;
 };
 

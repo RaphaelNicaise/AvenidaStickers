@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { FairGallery } from './FairGallery';
 
 interface HomeProps {
   onViewCatalog: () => void;
@@ -187,9 +188,12 @@ export const Home: React.FC<HomeProps> = ({ onViewCatalog }) => {
                 </div>
                 <h4 className="font-semibold text-primary-700 mb-1 sm:mb-2 text-xs sm:text-base">Ubicación</h4>
                 <p className="text-primary-600 text-xs sm:text-sm">Bronx Social Club</p>
-                <p className="font-bold text-primary-700 text-xs sm:text-base">Casanova al 1000</p>
+                <p className="font-bold text-primary-700 text-xs sm:text-base">Casanova al 888</p>
               </div>
             </div>
+
+            {/* Galería de la Feria */}
+            <FairGallery />
 
             {/* Google Maps responsive */}
             <div className="mt-4 sm:mt-8">
@@ -201,7 +205,7 @@ export const Home: React.FC<HomeProps> = ({ onViewCatalog }) => {
                   scrolling="no"
                   marginHeight={0}
                   marginWidth={0}
-                  src="https://maps.google.com/maps?width=720&amp;height=400&amp;hl=en&amp;q=Casanova%201000%20Bahia%20Blanca+(Av%20Stickers)&amp;t=&amp;z=17&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"
+                  src="https://maps.google.com/maps?width=720&amp;height=400&amp;hl=en&amp;q=Casanova%20888%20Bahia%20Blanca+(Av%20Stickers)&amp;t=&amp;z=17&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"
                   title="Bronx Social Club - Casanova al 888, Bahía Blanca"
                   style={{ border: 0 }}
                   allowFullScreen

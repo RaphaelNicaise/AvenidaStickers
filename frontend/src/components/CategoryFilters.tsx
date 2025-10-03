@@ -30,45 +30,47 @@ export const CategoryFilters: React.FC<CategoryFiltersProps> = ({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {/* Opción para stickers sin categoría */}
-        <button
-          key="sin-categoria"
-          onClick={() => onCategoryToggle('sin-categoria')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 
-                     border-2 italic ${
-            selectedCategories.includes('sin-categoria')
-              ? 'border-gray-500 bg-gray-500 text-white shadow-soft'
-              : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
-          }`}
-        >
-          Sin categoría
-          {selectedCategories.includes('sin-categoria') && (
-            <span className="ml-1 sm:ml-2 text-gray-200">✓</span>
-          )}
-        </button>
-        
-        {/* Categorías normales */}
-        {categories.map((category) => {
-          const isSelected = selectedCategories.includes(category);
-          return (
-            <button
-              key={category}
-              onClick={() => onCategoryToggle(category)}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 
-                         border-2 capitalize ${
-                isSelected
-                  ? 'border-primary-500 bg-primary-500 text-white shadow-soft'
-                  : 'border-primary-200 bg-white text-primary-600 hover:border-primary-300 hover:bg-primary-50'
-              }`}
-            >
-              {category}
-              {isSelected && (
-                <span className="ml-1 sm:ml-2 text-primary-200">✓</span>
-              )}
-            </button>
-          );
-        })}
+      <div className="max-h-60 overflow-y-auto pr-2">
+        <div className="flex flex-wrap gap-2">
+          {/* Opción para stickers sin categoría */}
+          <button
+            key="sin-categoria"
+            onClick={() => onCategoryToggle('sin-categoria')}
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 
+                       border-2 italic ${
+              selectedCategories.includes('sin-categoria')
+                ? 'border-gray-500 bg-gray-500 text-white shadow-soft'
+                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+            }`}
+          >
+            Sin categoría
+            {selectedCategories.includes('sin-categoria') && (
+              <span className="ml-1 sm:ml-2 text-gray-200">✓</span>
+            )}
+          </button>
+          
+          {/* Categorías normales */}
+          {categories.map((category) => {
+            const isSelected = selectedCategories.includes(category);
+            return (
+              <button
+                key={category}
+                onClick={() => onCategoryToggle(category)}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 
+                           border-2 capitalize ${
+                  isSelected
+                    ? 'border-primary-500 bg-primary-500 text-white shadow-soft'
+                    : 'border-primary-200 bg-white text-primary-600 hover:border-primary-300 hover:bg-primary-50'
+                }`}
+              >
+                {category}
+                {isSelected && (
+                  <span className="ml-1 sm:ml-2 text-primary-200">✓</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {selectedCategories.length > 0 && (

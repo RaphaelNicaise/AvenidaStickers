@@ -14,6 +14,7 @@ const PersonalizedStickerForm: React.FC<PersonalizedStickerFormProps> = ({
 }) => {
   const [importMode, setImportMode] = useState<'file' | 'pinterest'>('file');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [pinterestUrl, setPinterestUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,7 @@ const PersonalizedStickerForm: React.FC<PersonalizedStickerFormProps> = ({
       }
 
       setImageFile(file);
+      setImageFiles([]); // Limpiar selección múltiple
       
       // Crear preview
       const reader = new FileReader();
@@ -50,10 +52,40 @@ const PersonalizedStickerForm: React.FC<PersonalizedStickerFormProps> = ({
     }
   };
 
+  const handleMultipleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const filesArray = Array.from(files);
+      
+      // Límite de 20 archivos en formulario público
+      if (filesArray.length > 20) {
+        showError('Máximo 20 archivos permitidos por vez');
+        return;
+      }
+      
+      // Validar cada archivo
+      for (const file of filesArray) {
+        if (file.size > 10 * 1024 * 1024) {
+          showError(`El archivo ${file.name} supera los 10MB`);
+          return;
+        }
+        
+        if (!file.type.startsWith('image/')) {
+          showError(`El archivo ${file.name} no es una imagen válida`);
+          return;
+        }
+      }
+
+      setImageFiles(filesArray);
+      setImageFile(null); // Limpiar selección individual
+      setImagePreview(''); // Limpiar preview individual
+    }
+  };
+
   const handleFileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!imageFile) {
+    if (!imageFile && imageFiles.length === 0) {
       showError('Por favor selecciona una imagen');
       return;
     }
@@ -61,15 +93,51 @@ const PersonalizedStickerForm: React.FC<PersonalizedStickerFormProps> = ({
     try {
       setLoading(true);
       
-      // Crear un sticker temporal que se guardará en la base de datos pero con status temporal
-      const formData = new FormData();
-      formData.append('image', imageFile);
+      // Si hay múltiples archivos, procesar cada uno
+      if (imageFiles.length > 0) {
+        let successCount = 0;
+        let errorCount = 0;
+        const createdStickers: PersonalizedSticker[] = [];
+        
+        for (const file of imageFiles) {
+          try {
+            const formData = new FormData();
+            formData.append('image', file);
 
-      const response = await personalizedStickerApiService.createTemporaryPersonalizedSticker(formData);
-      
-      if (response.success && response.data) {
-        showSuccess('¡Sticker personalizado agregado al carrito!');
-        onStickerCreated(response.data);
+            const response = await personalizedStickerApiService.createTemporaryPersonalizedSticker(formData);
+            
+            if (response.success && response.data) {
+              successCount++;
+              createdStickers.push(response.data);
+            } else {
+              errorCount++;
+            }
+          } catch (error) {
+            errorCount++;
+          }
+        }
+        
+        if (successCount > 0) {
+          showSuccess(`¡${successCount} sticker${successCount > 1 ? 's' : ''} personalizado${successCount > 1 ? 's' : ''} agregado${successCount > 1 ? 's' : ''} al carrito!${errorCount > 0 ? ` (${errorCount} fallaron)` : ''}`);
+          // Enviar el primer sticker creado como callback (para mantener compatibilidad)
+          if (createdStickers.length > 0) {
+            onStickerCreated(createdStickers[0]);
+          }
+        }
+        if (errorCount === imageFiles.length) {
+          throw new Error('Error al crear stickers personalizados');
+        }
+      } else {
+        // Procesar archivo individual (lógica original)
+        const formData = new FormData();
+        formData.append('image', imageFile!);
+
+        const response = await personalizedStickerApiService.createTemporaryPersonalizedSticker(formData);
+        
+        if (response.success && response.data) {
+          showSuccess('¡Sticker personalizado agregado al carrito!');
+          onStickerCreated(response.data);
+        }
       }
     } catch (error: any) {
       showError(error.message || 'Error al crear sticker personalizado temporal');
@@ -165,19 +233,41 @@ const PersonalizedStickerForm: React.FC<PersonalizedStickerFormProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Imagen del sticker personalizado *
                   </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Máximo 10MB. Formatos: JPG, PNG, GIF, WebP
-                  </p>
+                  
+                  {/* Botón unificado de carga */}
+                  <div className="mb-4">
+                    <input
+                      type="file"
+                      id="personalized-images"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                          if (files.length === 1) {
+                            handleImageChange(e);
+                          } else {
+                            handleMultipleImagesChange(e);
+                          }
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <label 
+                      htmlFor="personalized-images"
+                      className="flex items-center justify-center gap-3 w-full p-4 border-2 border-primary-300 rounded-lg 
+                               text-center cursor-pointer bg-primary-50 text-primary-600 font-medium 
+                               hover:bg-primary-100 hover:border-primary-400 transition-all duration-200"
+                    >
+                      <span>📁 Subir Archivos</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Selecciona desde 1 hasta 20 archivos. Máximo 10MB por archivo. Formatos: JPG, PNG, GIF, WebP
+                    </p>
+                  </div>
                 </div>
 
-                {/* Preview de imagen */}
+                {/* Preview de imagen individual */}
                 {imagePreview && (
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -189,6 +279,29 @@ const PersonalizedStickerForm: React.FC<PersonalizedStickerFormProps> = ({
                         alt="Preview"
                         className="max-w-full max-h-48 object-contain border border-gray-200 rounded-lg"
                       />
+                    </div>
+                  </div>
+                )}
+
+                {/* Preview de múltiples archivos */}
+                {imageFiles.length > 0 && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {imageFiles.length} archivos seleccionados
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-60 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50">
+                      {imageFiles.map((file, index) => (
+                        <div key={index} className="text-center">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-20 object-cover border border-gray-200 rounded-md mb-1"
+                          />
+                          <p className="text-xs text-gray-600 truncate">
+                            {file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -241,7 +354,11 @@ const PersonalizedStickerForm: React.FC<PersonalizedStickerFormProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={loading || (importMode === 'file' && !imageFile) || (importMode === 'pinterest' && !isValidPinterestUrl(pinterestUrl))}
+                disabled={
+                  loading || 
+                  (importMode === 'file' && !imageFile && imageFiles.length === 0) || 
+                  (importMode === 'pinterest' && (!pinterestUrl.trim() || !isValidPinterestUrl(pinterestUrl)))
+                }
                 className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Creando...' : 'Crear Sticker'}

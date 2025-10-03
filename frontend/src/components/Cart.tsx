@@ -81,7 +81,6 @@ export const CartComponent: React.FC<CartProps> = ({
     const loadStickerSizes = async () => {
       try {
         const response = await apiService.getStickerSizes();
-        console.log('📏 Loaded sticker sizes from backend:', response.data?.sizes);
         // El backend devuelve { success: true, data: { sizes: [...], currency, updatedAt } }
         setStickerSizes(response.data?.sizes || []);
       } catch (error) {

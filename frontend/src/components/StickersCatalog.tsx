@@ -39,7 +39,7 @@ export const StickersCatalog: React.FC<StickersCatalogProps> = ({
 
   // Debounce para búsqueda y resetear página cuando cambian filtros
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {``
+    const debounceTimer = setTimeout(() => {
       setCurrentPage(1); // Resetear a página 1 cuando cambian los filtros
       loadStickers(1);
     }, searchQuery ? 300 : 0);
@@ -49,9 +49,8 @@ export const StickersCatalog: React.FC<StickersCatalogProps> = ({
 
   // Cargar stickers cuando cambia la página (solo para navegación de páginas)
   useEffect(() => {
-    if (currentPage > 1) {
-      loadStickers(currentPage);
-    }
+    // Solo cargar cuando la página cambió y no es por filtros
+    loadStickers(currentPage);
   }, [currentPage]);
 
   const loadCategories = async () => {

@@ -18,17 +18,11 @@ const AdminImage: React.FC<AdminImageProps> = ({
   const [imageLoading, setImageLoading] = useState(true);
 
   const handleImageError = () => {
-    const constructedUrl = adminApiService.getImageUrl(imagePath);
-    console.log('❌ Error loading image:');
-    console.log('  Original path:', imagePath);
-    console.log('  Constructed URL:', constructedUrl);
-    console.log('  Base URL:', import.meta.env.VITE_API_URL || 'http://localhost:4000');
     setImageError(true);
     setImageLoading(false);
   };
 
   const handleImageLoad = () => {
-    console.log('✅ Image loaded successfully:', adminApiService.getImageUrl(imagePath));
     setImageLoading(false);
   };
 

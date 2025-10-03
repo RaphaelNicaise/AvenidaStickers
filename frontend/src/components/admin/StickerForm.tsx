@@ -17,12 +17,13 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
   
   // Estados para Pinterest
-  const [importMode, setImportMode] = useState<'file' | 'pinterest'>('file');
+  const [importMode, setImportMode] = useState<'file' | 'pinterest'>('pinterest');
   const [pinterestUrl, setPinterestUrl] = useState('');
   const [processingPinterest, setProcessingPinterest] = useState(false);
 
@@ -106,6 +107,7 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
+      setImageFiles([]); // Limpiar selección múltiple
       
       // Crear preview
       const reader = new FileReader();
@@ -113,6 +115,16 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
         setImagePreview(event.target?.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleMultipleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const filesArray = Array.from(files);
+      setImageFiles(filesArray);
+      setImageFile(null); // Limpiar selección individual
+      setImagePreview(''); // Limpiar preview individual
     }
   };
 
@@ -169,7 +181,7 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!sticker && !imageFile) {
+    if (!sticker && !imageFile && imageFiles.length === 0) {
       showError('La imagen es obligatoria para stickers nuevos');
       return;
     }
@@ -177,6 +189,48 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
     try {
       setLoading(true);
       
+      // Si hay múltiples archivos, procesar cada uno
+      if (imageFiles.length > 0) {
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (let i = 0; i < imageFiles.length; i++) {
+          const file = imageFiles[i];
+          try {
+            const submitFormData = new FormData();
+            
+            // Enviar categorías como JSON string
+            if (formData.categories.length > 0) {
+              submitFormData.append('categories', JSON.stringify(formData.categories));
+            } else {
+              submitFormData.append('categories', JSON.stringify([]));
+            }
+            
+            submitFormData.append('image', file);
+
+            const response = await adminApiService.createSticker(submitFormData);
+
+            if (response.success) {
+              successCount++;
+            } else {
+              errorCount++;
+            }
+          } catch (err) {
+            errorCount++;
+          }
+        }
+        
+        if (successCount > 0) {
+          showSuccess(`${successCount} sticker${successCount > 1 ? 's' : ''} creado${successCount > 1 ? 's' : ''} exitosamente${errorCount > 0 ? ` (${errorCount} fallaron)` : ''}`);
+          onSave();
+        }
+        if (errorCount === imageFiles.length) {
+          showError('Error al crear los stickers');
+        }
+        return;
+      }
+
+      // Lógica original para archivo individual o edición
       const submitFormData = new FormData();
       
       // Enviar categorías como JSON string
@@ -190,12 +244,6 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
       if (imageFile) {
         submitFormData.append('image', imageFile);
       }
-
-      // Debug: verificar qué se está enviando
-      console.log('Datos enviados:');
-      console.log('- categories:', formData.categories);
-      console.log('- categories JSON:', JSON.stringify(formData.categories));
-      console.log('- image:', imageFile ? imageFile.name : 'sin cambios');
 
       let response;
       if (sticker) {
@@ -336,15 +384,83 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
                   </div>
                 )}
                 
-                <input
-                  type="file"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-                  required={!sticker}
-                />
+                {/* Contenedor de botones de carga - solo para stickers nuevos */}
+                {!sticker ? (
+                  <div className="space-y-4">
+                    <div>
+                      {/* Botón unificado para admin (sin límite) */}
+                      <input
+                        type="file"
+                        id="admin-images"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (files && files.length > 0) {
+                            if (files.length === 1) {
+                              handleImageChange(e);
+                            } else {
+                              handleMultipleImagesChange(e);
+                            }
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <label 
+                        htmlFor="admin-images"
+                        className="flex items-center justify-center gap-3 w-full p-4 border-2 border-dashed border-primary-300 rounded-lg 
+                                 text-center cursor-pointer bg-primary-50 text-primary-600 font-medium 
+                                 hover:bg-primary-100 hover:border-primary-400 transition-all duration-200"
+                      >
+                        <span>📁 Subir Archivos</span>
+                        {/* Ícono de información */}
+                        <span 
+                          title="Admin: Sin límite de archivos"
+                          className="inline-flex items-center justify-center w-5 h-5 bg-primary-600 text-white text-xs font-bold rounded-full cursor-help"
+                        >
+                          ∞
+                        </span>
+                      </label>
+                      <p className="text-sm text-gray-600 mt-2 text-center">
+                        Modo Admin: Sin límite de archivos. Selecciona las imágenes que necesites.
+                      </p>
+                    </div>
+
+                    {/* Preview de múltiples archivos */}
+                    {imageFiles.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-3">
+                          {imageFiles.length} archivos seleccionados:
+                        </p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50">
+                          {imageFiles.map((file, index) => (
+                            <div key={index} className="text-center">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-20 object-cover border border-gray-200 rounded-md mb-1"
+                              />
+                              <p className="text-xs text-gray-600 truncate">
+                                {file.name.length > 12 ? file.name.substring(0, 12) + '...' : file.name}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Para editar stickers existentes, usar input tradicional */
+                  <input
+                    type="file"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                  />
+                )}
+                
                 {!sticker && (
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 mt-2">
                     Selecciona una imagen en formato JPG, PNG o WebP
                   </p>
                 )}
@@ -423,19 +539,21 @@ const StickerForm: React.FC<StickerFormProps> = ({ sticker, onSave, onCancel }) 
               {!loadingCategories && availableCategories.length > 0 && (
                 <div>
                   <p className="text-sm text-gray-600 mb-3">Categorías disponibles (clic para agregar):</p>
-                  <div className="flex flex-wrap gap-2">
-                    {availableCategories
-                      .filter(category => !formData.categories.includes(category))
-                      .map(category => (
-                        <button
-                          key={category}
-                          type="button"
-                          onClick={() => handleQuickAddCategory(category)}
-                          className="px-3 py-1 text-sm bg-gray-100 hover:bg-primary-50 text-gray-700 hover:text-primary-700 rounded-full border border-gray-300 hover:border-primary-300 transition-colors"
-                        >
-                          + {category}
-                        </button>
-                      ))}
+                  <div className="max-h-40 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {availableCategories
+                        .filter(category => !formData.categories.includes(category))
+                        .map(category => (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => handleQuickAddCategory(category)}
+                            className="px-3 py-2 text-sm bg-white hover:bg-primary-50 text-gray-700 hover:text-primary-700 rounded-lg border border-gray-300 hover:border-primary-300 transition-colors text-left"
+                          >
+                            + {category}
+                          </button>
+                        ))}
+                    </div>
                   </div>
                 </div>
               )}

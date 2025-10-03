@@ -17,8 +17,6 @@ export const StickerCard: React.FC<StickerCardProps> = ({ sticker, onAddToCart }
   const handleAddToCart = async () => {
     if (isAdding || justAdded) return;
     
-    console.log('🎯 StickerCard: handleAddToCart called for sticker:', sticker.id_sticker);
-    
     setIsAdding(true);
     
     // Feedback háptico si está disponible
@@ -29,7 +27,6 @@ export const StickerCard: React.FC<StickerCardProps> = ({ sticker, onAddToCart }
     // Simular un pequeño delay para mostrar el estado de carga
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    console.log('🎯 StickerCard: Calling onAddToCart with sticker:', sticker.id_sticker);
     onAddToCart(sticker);
     
     setIsAdding(false);
