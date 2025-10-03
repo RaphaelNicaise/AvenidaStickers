@@ -7,6 +7,7 @@ const categoryController = new CategoryController();
 
 // Rutas para categorías
 router.get('/', categoryController.getAllCategories); // Público
+router.get('/with-count', categoryController.getCategoriesWithCount); // Público - Categorías con conteo
 router.post('/', adminAuth, categoryController.addCategory); // Solo admin
 router.delete('/:category', adminAuth, categoryController.deleteCategory); // Solo admin
 

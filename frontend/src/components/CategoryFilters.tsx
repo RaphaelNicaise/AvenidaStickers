@@ -1,7 +1,12 @@
 import React from 'react';
 
+interface CategoryWithCount {
+  name: string;
+  count: number;
+}
+
 interface CategoryFiltersProps {
-  categories: string[];
+  categories: CategoryWithCount[];
   selectedCategories: string[];
   onCategoryToggle: (category: string) => void;
   onClearFilters: () => void;
@@ -30,43 +35,42 @@ export const CategoryFilters: React.FC<CategoryFiltersProps> = ({
         )}
       </div>
 
-      <div className="max-h-60 overflow-y-auto pr-2">
+      <div className="max-h-48 overflow-y-auto pr-2">
         <div className="flex flex-wrap gap-2">
-          {/* Opción para stickers sin categoría */}
-          <button
-            key="sin-categoria"
-            onClick={() => onCategoryToggle('sin-categoria')}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 
-                       border-2 italic ${
-              selectedCategories.includes('sin-categoria')
-                ? 'border-gray-500 bg-gray-500 text-white shadow-soft'
-                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
-            }`}
-          >
-            Sin categoría
-            {selectedCategories.includes('sin-categoria') && (
-              <span className="ml-1 sm:ml-2 text-gray-200">✓</span>
-            )}
-          </button>
-          
-          {/* Categorías normales */}
           {categories.map((category) => {
-            const isSelected = selectedCategories.includes(category);
+            const isSelected = selectedCategories.includes(category.name);
+            const isSinCategoria = category.name === 'sin-categoria';
+            
             return (
               <button
-                key={category}
-                onClick={() => onCategoryToggle(category)}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 
-                           border-2 capitalize ${
+                key={category.name}
+                onClick={() => onCategoryToggle(category.name)}
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 
+                           border ${isSinCategoria ? 'italic' : 'capitalize'} ${
                   isSelected
-                    ? 'border-primary-500 bg-primary-500 text-white shadow-soft'
-                    : 'border-primary-200 bg-white text-primary-600 hover:border-primary-300 hover:bg-primary-50'
+                    ? isSinCategoria
+                      ? 'border-gray-500 bg-gray-500 text-white shadow-sm'
+                      : 'border-primary-500 bg-primary-500 text-white shadow-sm'
+                    : isSinCategoria
+                      ? 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+                      : 'border-primary-200 bg-white text-primary-600 hover:border-primary-300 hover:bg-primary-50'
                 }`}
               >
-                {category}
-                {isSelected && (
-                  <span className="ml-1 sm:ml-2 text-primary-200">✓</span>
-                )}
+                <span className="flex items-center space-x-1">
+                  <span>{isSinCategoria ? 'Sin categoría' : category.name}</span>
+                  <span className={`text-xs ${
+                    isSelected 
+                      ? isSinCategoria ? 'text-gray-200' : 'text-primary-200'
+                      : isSinCategoria ? 'text-gray-400' : 'text-primary-400'
+                  }`}>
+                    {category.count}
+                  </span>
+                  {isSelected && (
+                    <span className={`ml-1 ${
+                      isSinCategoria ? 'text-gray-200' : 'text-primary-200'
+                    }`}>✓</span>
+                  )}
+                </span>
               </button>
             );
           })}

@@ -21,7 +21,7 @@ export const StickersCatalog: React.FC<StickersCatalogProps> = ({
   onCreatePersonalizedSticker
 }) => {
   const [stickers, setStickers] = useState<Sticker[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Array<{ name: string; count: number }>>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,7 +55,7 @@ export const StickersCatalog: React.FC<StickersCatalogProps> = ({
 
   const loadCategories = async () => {
     try {
-      const categoriesRes = await apiService.getCategories();
+      const categoriesRes = await apiService.getCategoriesWithCount();
       if (categoriesRes.success) {
         setCategories(categoriesRes.data);
       }

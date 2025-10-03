@@ -26,6 +26,56 @@ export class CategoryController {
     }
   }
 
+  // Obtener categorías con conteo de stickers (solo las que tienen stickers)
+  public async getCategoriesWithCount(req: Request, res: Response): Promise<void> {
+    try {
+      // Obtener conteo de stickers por categoría
+      const categoryCounts = await Sticker.aggregate([
+        { $unwind: '$categories' },
+        {
+          $group: {
+            _id: '$categories',
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { count: -1 } } // Ordenar por cantidad descendente
+      ]);
+
+      // Obtener conteo de stickers sin categoría
+      const uncategorizedCount = await Sticker.countDocuments({
+        $or: [
+          { categories: { $exists: false } },
+          { categories: { $size: 0 } }
+        ]
+      });
+
+      // Construir respuesta
+      const categoriesWithCount = categoryCounts.map(item => ({
+        name: item._id,
+        count: item.count
+      }));
+
+      // Agregar "sin categoría" si hay stickers sin categoría
+      if (uncategorizedCount > 0) {
+        categoriesWithCount.push({
+          name: 'sin-categoria',
+          count: uncategorizedCount
+        });
+      }
+
+      res.json({
+        success: true,
+        data: categoriesWithCount
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error al obtener las categorías con conteo',
+        error: (error as Error).message
+      });
+    }
+  }
+
   // Agregar una nueva categoría
   public async addCategory(req: Request, res: Response): Promise<void> {
     try {

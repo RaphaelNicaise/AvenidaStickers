@@ -56,6 +56,11 @@ class ApiService {
     return this.request<CategoriesResponse>('/api/categories');
   }
 
+  // Obtener categorías con conteo de stickers (solo las que tienen al menos 1 sticker)
+  async getCategoriesWithCount(): Promise<{ success: boolean; data: Array<{ name: string; count: number }> }> {
+    return this.request<{ success: boolean; data: Array<{ name: string; count: number }> }>('/api/categories/with-count');
+  }
+
   // Crear nueva categoría
   async createCategory(name: string): Promise<{ success: boolean; message: string; data: string[] }> {
     const response = await fetch(`${this.baseURL}/api/categories`, {
