@@ -87,9 +87,9 @@ PersonalizedStickerSchema.statics.cleanupExpiredStickers = async function() {
       return { deleted: 0, message: 'Auto-eliminación deshabilitada' };
     }
 
-    // Buscar stickers expirados (solo los activos)
+    // Buscar stickers expirados (solo los temporales - los activos ya no deberían expirar)
     const expiredStickers = await this.find({
-      status: 'active',
+      status: 'temporary', // Solo eliminar temporales, no activos
       expiresAt: { $lte: new Date() }
     });
 
@@ -107,10 +107,10 @@ PersonalizedStickerSchema.statics.cleanupExpiredStickers = async function() {
 
         // Eliminar registro de la base de datos
         await this.findByIdAndDelete(sticker._id);
-        console.log(`⏰ Sticker personalizado expirado eliminado: ${sticker.id_personalized}`);
+        console.log(`⏰ Sticker temporal expirado eliminado: ${sticker.id_personalized}`);
         deletedCount++;
       } catch (error) {
-        console.error(`❌ Error eliminando sticker expirado ${sticker.id_personalized}:`, error);
+        console.error(`❌ Error eliminando sticker temporal expirado ${sticker.id_personalized}:`, error);
         errors.push(`Error eliminando ${sticker.id_personalized}: ${(error as Error).message}`);
       }
     }
@@ -118,11 +118,11 @@ PersonalizedStickerSchema.statics.cleanupExpiredStickers = async function() {
     const result = {
       deleted: deletedCount,
       errors: errors.length > 0 ? errors : undefined,
-      message: `${deletedCount} stickers personalizados expirados eliminados`
+      message: `${deletedCount} stickers temporales expirados eliminados`
     };
 
     if (deletedCount > 0) {
-      console.log(`✅ Limpieza automática completada: ${deletedCount} stickers eliminados`);
+      console.log(`✅ Limpieza automática completada: ${deletedCount} stickers temporales eliminados`);
     }
 
     return result;

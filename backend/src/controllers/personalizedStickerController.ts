@@ -147,14 +147,13 @@ export class PersonalizedStickerController {
       // Generar el próximo ID de sticker personalizado
       const nextId = await (PersonalizedSticker as any).generateNextId();
       
-      // Calcular fecha de expiración
-      const expiresAt = await (PersonalizedSticker as any).calculateExpirationDate();
-
+      // Los stickers personalizados activos NO expiran (son permanentes hasta que se publiquen)
       const personalizedSticker: IPersonalizedSticker = new PersonalizedSticker({
         id_personalized: nextId,
         imagePath,
         source: 'upload',
-        expiresAt
+        status: 'active'
+        // Sin expiresAt - permanente hasta publicación
       });
 
       const savedSticker = await personalizedSticker.save();
@@ -224,17 +223,15 @@ export class PersonalizedStickerController {
       const imagePath = await saveOptimizedImage(imageBuffer, nextId);
       console.log(`💾 Imagen guardada en: ${imagePath}`);
       
-      // Calcular fecha de expiración
-      const expiresAt = await (PersonalizedSticker as any).calculateExpirationDate();
-
-      // Paso 4: Crear sticker personalizado en la base de datos
+      // Paso 4: Crear sticker personalizado activo permanente (sin expiración)
       const newSticker = new PersonalizedSticker({
         id_personalized: nextId,
         imagePath,
         source: 'pinterest',
         originalUrl: pinterestUrl,
-        expiresAt,
+        status: 'active', // Activo y permanente
         createdAt: new Date()
+        // Sin expiresAt - permanente hasta publicación
       });
 
       const savedSticker = await newSticker.save();

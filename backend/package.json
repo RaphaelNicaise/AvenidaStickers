@@ -13,7 +13,8 @@
     "clean": "npx ts-node src/scripts/cleanDatabase.ts",
     "clean:uploads": "npx ts-node src/scripts/cleanUploads.ts",
     "clean:all": "npx ts-node src/scripts/cleanDatabase.ts && npx ts-node src/scripts/cleanUploads.ts",
-    "init:config": "npx ts-node src/scripts/initConfig.ts"
+    "init:config": "npx ts-node src/scripts/initConfig.ts",
+    "migrate:permanent": "npx ts-node src/scripts/makeActiveStickersPermament.ts"
   },
   "keywords": [],
   "author": "",
